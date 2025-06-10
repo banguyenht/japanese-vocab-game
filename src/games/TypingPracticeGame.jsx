@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { loadCSV } from "../utils/loadCSV";
-import vocabCSV from "../data/lesson40.csv?url";
 import { useVocabularyLoader } from "../hooks/useVocabularyLoader";
 import LoadingScreen from "../components/LoadingScreen";
 import SpeakButton from "../components/SpeakButton";
