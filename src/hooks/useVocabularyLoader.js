@@ -8,7 +8,7 @@ export function useVocabularyLoader(lessonId) {
   useEffect(() => {
     if (!lessonId) return;
 
-    const csvPath = `/public/data/lesson${lessonId}.csv`;
+    const csvPath = `/data/lesson${lessonId}.csv`;
     fetch(csvPath)
       .then((res) => res.text())
       .then((text) => loadCSV(text))
