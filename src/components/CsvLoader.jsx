@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { loadCSV } from "../utils/loadCSV";
-import vocabCSV from "../data/lession40.csv?url";
+import vocabCSV from "../data/lesson40.csv?url";
 
 export default function CsvLoader() {
   const [vocab, setVocab] = useState([]);

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { loadCSV } from "../utils/loadCSV";
-import vocabCSV from "../data/lession40.csv?url";
+import vocabCSV from "../data/lesson40.csv?url";
 import SpeakButton from "../components/SpeakButton";
+import { useParams } from "react-router-dom";
 
 export default function TypingPracticeGame() {
+  const { lessonId } = useParams();
   const [vocabList, setVocabList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -13,7 +15,10 @@ export default function TypingPracticeGame() {
   const [showNext, setShowNext] = useState(false);
 
   useEffect(() => {
-    fetch(vocabCSV)
+    if (!lessonId) return;
+
+    const csvPath = `/src/data/lesson${lessonId}.csv`;
+    fetch(csvPath)
       .then((res) => res.text())
       .then((text) => loadCSV(text))
       .then((data) => {

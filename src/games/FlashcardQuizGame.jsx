@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { loadCSV } from "../utils/loadCSV";
-import vocabCSV from "../data/lession40.csv?url";
 
 import QuizQuestion from "./QuizQuestion";
 import QuizOptions from "./QuizOptions";
@@ -15,7 +14,6 @@ function shuffle(array) {
 
 export default function FlashcardQuizGame() {
   const { lessonId } = useParams();
-  console.log("lessonId:", lessonId);
 
   const [vocabList, setVocabList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +24,10 @@ export default function FlashcardQuizGame() {
   const [showNext, setShowNext] = useState(false);
 
   useEffect(() => {
-    fetch(vocabCSV)
+    if (!lessonId) return;
+
+    const csvPath = `/src/data/lesson${lessonId}.csv`;
+    fetch(csvPath)
       .then((res) => res.text())
       .then((text) => loadCSV(text))
       .then((data) => {

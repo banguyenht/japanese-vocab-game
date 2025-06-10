@@ -16,7 +16,7 @@ export default function LessonPage() {
           Quiz Game
         </Link>
         <Link
-          to={`/match/${lessonId}`}
+          to={`/typing/${lessonId}`}
           className="bg-pink-500 text-white px-6 py-3 rounded-xl shadow hover:bg-pink-600 transition text-lg"
         >
           Matching Game
