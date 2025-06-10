@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { loadCSV } from "../utils/loadCSV";
+import { useVocabularyLoader } from "../hooks/useVocabularyLoader";
+import LoadingScreen from "../components/LoadingScreen";
+import ScoreDisplay from "../components/ScoreDisplay";
 
 import QuizQuestion from "./QuizQuestion";
 import QuizOptions from "./QuizOptions";
@@ -12,33 +14,16 @@ function shuffle(array) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-export default function FlashcardQuizGame() {
+export default function FlashcardQuizGamLoadingScreene() {
   const { lessonId } = useParams();
+  const [score, setScore] = useState(0);
+  const { vocabList, loading } = useVocabularyLoader(lessonId);
 
-  const [vocabList, setVocabList] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [options, setOptions] = useState([]);
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showNext, setShowNext] = useState(false);
-
-  useEffect(() => {
-    if (!lessonId) return;
-
-    const csvPath = `/src/data/lesson${lessonId}.csv`;
-    fetch(csvPath)
-      .then((res) => res.text())
-      .then((text) => loadCSV(text))
-      .then((data) => {
-        setVocabList(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load CSV", err);
-        setLoading(false);
-      });
-  }, []);
 
   useEffect(() => {
     if (vocabList.length === 0) return;
@@ -64,6 +49,10 @@ export default function FlashcardQuizGame() {
     if (selectedAnswer) return;
     setSelectedAnswer(selected);
     setShowNext(true);
+
+    if (selected === correctAnswer) {
+      setScore((prev) => prev + 1);
+    }
   };
 
   const handleNext = () => {
@@ -99,12 +88,8 @@ export default function FlashcardQuizGame() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedAnswer, questionIndex, vocabList]);
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-gray-500 text-xl">Đang tải từ vựng...</p>
-      </div>
-    );
+  if (loading) return <LoadingScreen />;
+
 
   const question = vocabList[questionIndex];
 
@@ -130,6 +115,7 @@ export default function FlashcardQuizGame() {
             onNext={handleNext}
           />
         )}
+        <ScoreDisplay score={score} />
       </div>
     </div>
   );

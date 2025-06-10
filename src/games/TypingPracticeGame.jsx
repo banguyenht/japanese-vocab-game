@@ -1,35 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { loadCSV } from "../utils/loadCSV";
 import vocabCSV from "../data/lesson40.csv?url";
+import { useVocabularyLoader } from "../hooks/useVocabularyLoader";
+import LoadingScreen from "../components/LoadingScreen";
 import SpeakButton from "../components/SpeakButton";
 import { useParams } from "react-router-dom";
+import ScoreDisplay from "../components/ScoreDisplay";
+
 
 export default function TypingPracticeGame() {
   const { lessonId } = useParams();
-  const [vocabList, setVocabList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { vocabList, loading } = useVocabularyLoader(lessonId);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userInput, setUserInput] = useState("");
   const [score, setScore] = useState(0);
   const [isCorrect, setIsCorrect] = useState(null);
   const [showNext, setShowNext] = useState(false);
 
-  useEffect(() => {
-    if (!lessonId) return;
-
-    const csvPath = `/src/data/lesson${lessonId}.csv`;
-    fetch(csvPath)
-      .then((res) => res.text())
-      .then((text) => loadCSV(text))
-      .then((data) => {
-        setVocabList(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load CSV", err);
-        setLoading(false);
-      });
-  }, []);
 
   const currentWord = vocabList[currentIndex];
 
@@ -63,13 +50,7 @@ export default function TypingPracticeGame() {
     setCurrentIndex((prev) => (prev + 1) % vocabList.length);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-gray-500 text-xl">Đang tải từ vựng...</p>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-200 via-pink-200 to-purple-300 flex flex-col justify-center items-center p-4">
@@ -127,9 +108,7 @@ export default function TypingPracticeGame() {
           </div>
         )}
 
-        <div className="mt-6 text-center text-gray-600">
-          Điểm: <span className="font-bold text-indigo-600">{score}</span>
-        </div>
+        <ScoreDisplay score={score} />
       </div>
     </div>
   );
