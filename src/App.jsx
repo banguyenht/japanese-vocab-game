@@ -1,12 +1,15 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Analytics } from "@vercel/analytics/next"
 import MainLayout from "./layouts/MainLayout";
 
 import HomePage from "./pages/HomePage";
 import LessonPage from "./pages/LessonPage";
 import FlashcardQuizGame from "./games/FlashcardQuizGame";
 import TypingPracticeGame from "./games/TypingPracticeGame";
+import AuthForm from "./components/AuthForm";
+import Login from "./pages/Login"; 
+import CreateLesson from "./pages/CreateLesson";
+
 
 export default function App() {
   return (
@@ -17,6 +20,9 @@ export default function App() {
           <Route path="lesson/:lessonId" element={<LessonPage />} />
           <Route path="quiz/:lessonId" element={<FlashcardQuizGame />} />
           <Route path="typing/:lessonId" element={<TypingPracticeGame />} />
+          <Route path="/auth" element={<AuthForm />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/create-lesson" element={<CreateLesson />} />
         </Route>
       </Routes>
     </BrowserRouter>
