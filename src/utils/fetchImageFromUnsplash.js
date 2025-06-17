@@ -1,6 +1,6 @@
-const UNSPLASH_ACCESS_KEY = "wNUfExecDVj0WPMiUouZ5esV7JRAY-e3Jj7wq_GkNiU";
+const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY
 
-export async function fetchImage(keyword) {
+export async function fetchImage(keyword) {env
   const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(keyword)}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=1`;
 
   const res = await fetch(url);

@@ -1,43 +1,58 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const UNSPLASH_ACCESS_KEY = "wNUfExecDVj0WPMiUouZ5esV7JRAY-e3Jj7wq_GkNiU";
+import { fetchJishoSuggestions } from "../utils/jishoApi";
+import { fetchUnsplashImages } from "../utils/unsplashApi";
+import { translateToEnglish } from "../utils/translateApi";
 
 const CreateLesson = () => {
   const navigate = useNavigate();
   const [lessonName, setLessonName] = useState("");
   const [words, setWords] = useState([
-    { vocab: "", kanji: "", meaning: "", image: "", imageOptions: [] },
+    { vocab: "", meaning: "", image: "", imageOptions: [], suggestions: [] },
   ]);
 
-  const handleChangeWord = (index, field, value) => {
+  const handleChangeWord = async (index, field, value) => {
     const updated = [...words];
     updated[index][field] = value;
     setWords(updated);
-  };
 
-  const fetchImages = async (keyword) => {
-    try {
-      const res = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(
-          keyword
-        )}&client_id=${UNSPLASH_ACCESS_KEY}&per_page=5`
-      );
-      const data = await res.json();
-      return data.results.map((img) => img.urls.small);
-    } catch (error) {
-      console.error("Error fetching images:", error);
-      return [];
+    if (field === "vocab") {
+      const suggestions = await fetchJishoSuggestions(value);
+      updated[index].suggestions = suggestions;
+      setWords([...updated]);
     }
   };
 
   const handleMeaningBlur = async (index, value) => {
     handleChangeWord(index, "meaning", value);
-    const images = await fetchImages(value);
+
+    const englishKeyword = await translateToEnglish(value);
+    const images = await fetchUnsplashImages(englishKeyword);
+
     const updated = [...words];
     updated[index].imageOptions = images;
     setWords(updated);
   };
+
+  const handleFetchImages = async (index) => {
+  const word = words[index];
+  if (!word.meaning.trim()) return;
+
+  const englishKeyword = await translateToEnglish(word.meaning);
+  const images = await fetchUnsplashImages(englishKeyword);
+
+  const updated = [...words];
+  updated[index].imageOptions = images;
+  setWords(updated);
+};
+
+  const handleRemoveImage = (index) => {
+    const updated = [...words];
+    updated[index].image = "";
+    setWords(updated);
+  };
+
+
 
   const handleSelectImage = (index, imgUrl) => {
     const updated = [...words];
@@ -48,7 +63,7 @@ const CreateLesson = () => {
   const handleAddWord = () => {
     setWords([
       ...words,
-      { vocab: "", kanji: "", meaning: "", image: "", imageOptions: [] },
+      { vocab: "", meaning: "", image: "", imageOptions: [], suggestions: [] },
     ]);
   };
 
@@ -88,33 +103,49 @@ const CreateLesson = () => {
               Từ vựng {index + 1}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Từ vựng (Kana)"
-                value={word.vocab}
-                onChange={(e) => handleChangeWord(index, "vocab", e.target.value)}
-                className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-              />
-              <input
-                type="text"
-                placeholder="Kanji"
-                value={word.kanji}
-                onChange={(e) => handleChangeWord(index, "kanji", e.target.value)}
-                className="px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-              />
-            </div>
-
             <input
               type="text"
-              placeholder="Ý nghĩa tiếng Việt"
-              value={word.meaning}
-              onChange={(e) => handleChangeWord(index, "meaning", e.target.value)}
-              onBlur={(e) => handleMeaningBlur(index, e.target.value)}
+              placeholder="Từ vựng"
+              value={word.vocab}
+              onChange={(e) => handleChangeWord(index, "vocab", e.target.value)}
               className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
 
-            {word.imageOptions.length > 0 && (
+            {word.suggestions.length > 0 && (
+              <ul className="flex flex-wrap gap-2 text-sm text-gray-600">
+                {word.suggestions.map((suggestion, sIndex) => (
+                  <li
+                    key={sIndex}
+                    className="px-2 py-1 border border-gray-300 rounded cursor-pointer hover:bg-indigo-100"
+                    onClick={() => handleChangeWord(index, "vocab", suggestion)}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Ý nghĩa tiếng Việt"
+                value={word.meaning}
+                onChange={(e) => handleChangeWord(index, "meaning", e.target.value)}
+                className="flex-1 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+              <button
+                type="button"
+                title="Tìm ảnh minh hoạ"
+                onClick={() => handleFetchImages(index)}
+                className="p-2 rounded-md border border-gray-300 hover:bg-gray-100 transition"
+              >
+                🖼️
+              </button>
+            </div>
+
+
+            {/* Chỉ hiển thị ảnh gợi ý nếu chưa chọn ảnh */}
+            {word.imageOptions.length > 0 && !word.image && (
               <div className="flex flex-wrap gap-2">
                 {word.imageOptions.map((imgUrl, imgIndex) => (
                   <img
@@ -130,22 +161,35 @@ const CreateLesson = () => {
               </div>
             )}
 
+            {/* Ẩn input hình ảnh thủ công */}
             <input
               type="text"
               placeholder="URL hình ảnh (tuỳ chọn)"
               value={word.image}
               onChange={(e) => handleChangeWord(index, "image", e.target.value)}
-              className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="hidden"
             />
 
+            {/* Hiển thị ảnh đã chọn */}
             {word.image && (
-              <img
-                src={word.image}
-                alt="preview"
-                className="w-32 h-32 object-cover rounded-md border border-indigo-400 mt-2"
-                onError={(e) => (e.target.style.display = "none")}
-              />
+              <div className="relative inline-block mt-2">
+                <img
+                  src={word.image}
+                  alt="preview"
+                  className="w-32 h-32 object-cover rounded-md border border-indigo-400"
+                  onError={(e) => (e.target.style.display = "none")}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(index)}
+                  className="absolute top-0 right-0 bg-white bg-opacity-80 text-red-500 hover:text-red-700 rounded-full p-1 shadow"
+                  title="Xoá ảnh"
+                >
+                  ✕
+                </button>
+              </div>
             )}
+
           </div>
         ))}
 
