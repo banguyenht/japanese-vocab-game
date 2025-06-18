@@ -35,24 +35,22 @@ const CreateLesson = () => {
   };
 
   const handleFetchImages = async (index) => {
-  const word = words[index];
-  if (!word.meaning.trim()) return;
+    const word = words[index];
+    if (!word.meaning.trim()) return;
 
-  const englishKeyword = await translateToEnglish(word.meaning);
-  const images = await fetchUnsplashImages(englishKeyword);
+    const englishKeyword = await translateToEnglish(word.meaning);
+    const images = await fetchUnsplashImages(englishKeyword);
 
-  const updated = [...words];
-  updated[index].imageOptions = images;
-  setWords(updated);
-};
+    const updated = [...words];
+    updated[index].imageOptions = images;
+    setWords(updated);
+  };
 
   const handleRemoveImage = (index) => {
     const updated = [...words];
     updated[index].image = "";
     setWords(updated);
   };
-
-
 
   const handleSelectImage = (index, imgUrl) => {
     const updated = [...words];
@@ -74,7 +72,7 @@ const CreateLesson = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10 bg-gray-50 min-h-screen">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-center text-indigo-700 mb-10">
         📚 Tạo học phần mới
       </h1>
@@ -125,43 +123,44 @@ const CreateLesson = () => {
               </ul>
             )}
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <input
                 type="text"
                 placeholder="Ý nghĩa tiếng Việt"
                 value={word.meaning}
-                onChange={(e) => handleChangeWord(index, "meaning", e.target.value)}
-                className="flex-1 px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                onChange={(e) =>
+                  handleChangeWord(index, "meaning", e.target.value)
+                }
+                className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
               />
               <button
                 type="button"
                 title="Tìm ảnh minh hoạ"
                 onClick={() => handleFetchImages(index)}
-                className="p-2 rounded-md border border-gray-300 hover:bg-gray-100 transition"
+                className="px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition text-sm"
               >
                 🖼️
               </button>
             </div>
 
-
-            {/* Chỉ hiển thị ảnh gợi ý nếu chưa chọn ảnh */}
             {word.imageOptions.length > 0 && !word.image && (
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {word.imageOptions.map((imgUrl, imgIndex) => (
                   <img
                     key={imgIndex}
                     src={imgUrl}
                     alt="option"
                     onClick={() => handleSelectImage(index, imgUrl)}
-                    className={`w-24 h-24 object-cover rounded-md border-2 cursor-pointer transition hover:scale-105 ${
-                      word.image === imgUrl ? "border-indigo-500" : "border-gray-200"
+                    className={`w-full h-24 object-cover rounded-md border-2 cursor-pointer transition hover:scale-105 ${
+                      word.image === imgUrl
+                        ? "border-indigo-500"
+                        : "border-gray-200"
                     }`}
                   />
                 ))}
               </div>
             )}
 
-            {/* Ẩn input hình ảnh thủ công */}
             <input
               type="text"
               placeholder="URL hình ảnh (tuỳ chọn)"
@@ -170,13 +169,12 @@ const CreateLesson = () => {
               className="hidden"
             />
 
-            {/* Hiển thị ảnh đã chọn */}
             {word.image && (
               <div className="relative inline-block mt-2">
                 <img
                   src={word.image}
                   alt="preview"
-                  className="w-32 h-32 object-cover rounded-md border border-indigo-400"
+                  className="w-20 h-20 object-cover rounded-md border border-indigo-400"
                   onError={(e) => (e.target.style.display = "none")}
                 />
                 <button
@@ -189,11 +187,10 @@ const CreateLesson = () => {
                 </button>
               </div>
             )}
-
           </div>
         ))}
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mt-6">
           <button
             type="button"
             onClick={handleAddWord}
