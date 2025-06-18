@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { collection, addDoc } from "firebase/firestore";
+import { auth, db } from "../firebaseConfig"; // Firestore để lưu học phần
+import useAuth from "../hooks/useAuth"; // Hook lấy user đăng nhập
 import { fetchJishoSuggestions } from "../utils/jishoApi";
 import { fetchUnsplashImages } from "../utils/unsplashApi";
 import { translateToEnglish } from "../utils/translateApi";
 
 const CreateLesson = () => {
   const navigate = useNavigate();
+  const user = useAuth(); // Lấy thông tin user đăng nhập
   const [lessonName, setLessonName] = useState("");
+  const [isPublic, setIsPublic] = useState(true); // Mặc định là Public
   const [words, setWords] = useState([
     { vocab: "", meaning: "", image: "", imageOptions: [], suggestions: [] },
   ]);
@@ -21,17 +26,6 @@ const CreateLesson = () => {
       updated[index].suggestions = suggestions;
       setWords([...updated]);
     }
-  };
-
-  const handleMeaningBlur = async (index, value) => {
-    handleChangeWord(index, "meaning", value);
-
-    const englishKeyword = await translateToEnglish(value);
-    const images = await fetchUnsplashImages(englishKeyword);
-
-    const updated = [...words];
-    updated[index].imageOptions = images;
-    setWords(updated);
   };
 
   const handleFetchImages = async (index) => {
@@ -65,10 +59,27 @@ const CreateLesson = () => {
     ]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Lesson created:", { lessonName, words });
-    navigate("/");
+
+    if (!user) {
+      alert("Bạn cần đăng nhập để tạo học phần!");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "lessons"), {
+        userId: user.uid,
+        lessonName,
+        isPublic,
+        words,
+        createdAt: new Date(),
+      });
+
+      navigate("/");
+    } catch (error) {
+      console.error("Lỗi khi lưu học phần:", error);
+    }
   };
 
   return (
@@ -92,11 +103,14 @@ const CreateLesson = () => {
           />
         </div>
 
+        {/* Checkbox chọn Public hoặc Private */}
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={isPublic} onChange={() => setIsPublic(!isPublic)} className="w-5 h-5" />
+          <span className="text-sm text-gray-700">Công khai học phần (Public)</span>
+        </label>
+
         {words.map((word, index) => (
-          <div
-            key={index}
-            className="space-y-4 p-6 rounded-xl bg-white shadow border border-gray-100"
-          >
+          <div key={index} className="space-y-4 p-6 rounded-xl bg-white shadow border border-gray-100">
             <div className="text-sm font-semibold text-indigo-600">
               Từ vựng {index + 1}
             </div>
@@ -190,18 +204,18 @@ const CreateLesson = () => {
           </div>
         ))}
 
-        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mt-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mt-8">
           <button
             type="button"
             onClick={handleAddWord}
-            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium px-4 py-2 border border-indigo-300 rounded-md"
           >
             + Thêm từ vựng
           </button>
 
           <button
             type="submit"
-            className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg shadow hover:bg-indigo-700"
+            className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-md shadow hover:bg-indigo-700 text-sm"
           >
             ✅ Tạo học phần
           </button>

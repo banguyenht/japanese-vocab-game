@@ -24,7 +24,7 @@ export default function App() {
           <Route path="typing/:lessonId" element={<TypingPracticeGame />} />
           <Route path="/auth" element={<AuthForm />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/create-lesson" element={<CreateLesson />} />
+          <Route path="/tao-tu-vung-tieng-nhat" element={<CreateLesson />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/change-password" element={<ChangePassword />} />

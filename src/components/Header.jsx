@@ -124,7 +124,7 @@ const Header = () => {
           <div className="flex items-center gap-4 relative">
             {user && (
               <Link
-                to="/create-lesson"
+                to="/tao-tu-vung-tieng-nhat"
                 className="hidden sm:flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-800 transition"
               >
                 <PlusCircleIcon className="w-5 h-5" />
@@ -217,7 +217,7 @@ const Header = () => {
               {user && (
                 <>
                   <Link
-                    to="/create-lesson"
+                    to="/tao-tu-vung-tieng-nhat"
                     onClick={() => setSidebarOpen(false)}
                     className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-green-50 text-green-700"
                   >

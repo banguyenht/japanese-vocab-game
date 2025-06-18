@@ -1,7 +1,9 @@
-// pages/HomePage.jsx
 import { Link } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const HomePage = () => {
+  const user = useAuth(); // Lấy thông tin người dùng
+
   // Tạm thời tạo danh sách học phần mẫu
   const userLessons = [
     { id: 1, title: "Từ vựng gia đình", wordCount: 20 },
@@ -32,14 +34,16 @@ const HomePage = () => {
           ))}
         </div>
 
-        <div className="mt-10 flex justify-center">
-          <Link
-            to="/create-lesson"
-            className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-indigo-700 transition"
-          >
-            ➕ Tạo học phần mới
-          </Link>
-        </div>
+        {user && ( // Kiểm tra nếu user đã đăng nhập thì hiển thị nút tạo học phần mới
+          <div className="mt-10 flex justify-center">
+            <Link
+              to="/tao-tu-vung-tieng-nhat"
+              className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-indigo-700 transition"
+            >
+              ➕ Tạo học phần mới
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

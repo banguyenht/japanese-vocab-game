@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from "../firebaseConfig";
+import GoogleLoginButton from "../components/auth/GoogleLoginButton"; // 👈 Thêm dòng này
 
 export default function Login() {
   const navigate = useNavigate();
@@ -110,12 +111,18 @@ export default function Login() {
           </div>
         )}
 
+        <div className="my-6">
+          <div className="relative text-center text-sm text-gray-500">
+            <div className="absolute left-0 top-2 w-full border-t border-gray-200" />
+            <span className="bg-white px-2 relative z-10">Hoặc</span>
+          </div>
+        </div>
+
+        <GoogleLoginButton onSuccess={() => navigate("/")} />
+
         <div className="mt-6 text-center text-sm text-gray-500">
           Chưa có tài khoản?{" "}
-          <Link
-            to="/register"
-            className="text-indigo-600 hover:underline"
-          >
+          <Link to="/register" className="text-indigo-600 hover:underline">
             Đăng ký
           </Link>
         </div>
