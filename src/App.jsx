@@ -9,7 +9,9 @@ import TypingPracticeGame from "./games/TypingPracticeGame";
 import AuthForm from "./components/AuthForm";
 import Login from "./pages/Login"; 
 import CreateLesson from "./pages/CreateLesson";
-
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ChangePassword from "./pages/ChangePassword";
 
 export default function App() {
   return (
@@ -23,6 +25,9 @@ export default function App() {
           <Route path="/auth" element={<AuthForm />} />
           <Route path="/login" element={<Login />} />
           <Route path="/create-lesson" element={<CreateLesson />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/change-password" element={<ChangePassword />} />
         </Route>
       </Routes>
     </BrowserRouter>

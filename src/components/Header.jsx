@@ -1,151 +1,143 @@
-import { Fragment } from "react";
-import { Menu, Transition } from "@headlessui/react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  ChevronDownIcon,
+  MenuIcon,
+  XIcon,
+  HomeIcon,
+  BookOpenIcon,
+  BellIcon,
   LogOutIcon,
   LogInIcon,
   PlusCircleIcon,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import useAuth from "../hooks/useAuth";
 
-const lessonGroups = {
-  N5: Array.from({ length: 25 }, (_, i) => i + 1),
-  N4: Array.from({ length: 25 }, (_, i) => i + 26),
-};
-
 const Header = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = () => navigate("/login");
-  const handleLogout = () => signOut(auth).catch(console.error);
-
-  const renderDropdown = (label, lessons) => (
-    <Menu as="div" className="relative inline-block text-left">
-      <Menu.Button className="inline-flex items-center gap-1 rounded-md bg-white px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition shadow-sm">
-        {label}
-        <ChevronDownIcon className="h-4 w-4" />
-      </Menu.Button>
-
-      <Transition
-        as={Fragment}
-        enter="transition ease-out duration-100"
-        enterFrom="transform opacity-0 scale-95"
-        enterTo="transform opacity-100 scale-100"
-        leave="transition ease-in duration-75"
-        leaveFrom="transform opacity-100 scale-100"
-        leaveTo="transform opacity-0 scale-95"
-      >
-        <Menu.Items className="absolute z-10 mt-2 w-44 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 max-h-80 overflow-y-auto">
-          <div className="p-1">
-            {lessons.map((lessonId) => (
-              <Menu.Item key={lessonId}>
-                {({ active }) => (
-                  <Link
-                    to={`/lesson/${lessonId}`}
-                    className={`block px-4 py-2 text-sm rounded-md ${
-                      active ? "bg-indigo-100 text-indigo-800" : "text-gray-800"
-                    }`}
-                  >
-                    Bài {lessonId}
-                  </Link>
-                )}
-              </Menu.Item>
-            ))}
-          </div>
-        </Menu.Items>
-      </Transition>
-    </Menu>
-  );
-
-  const renderAvatar = () => {
-    if (user?.photoURL) {
-      return (
-        <img
-          src={user.photoURL}
-          alt="avatar"
-          className="w-8 h-8 rounded-full border object-cover"
-        />
-      );
-    }
-
-    const fallback = user?.email?.charAt(0).toUpperCase() || "?";
-
-    return (
-      <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center text-sm font-semibold">
-        {fallback}
-      </div>
-    );
+  const handleLogin = () => {
+    setSidebarOpen(false);
+    navigate("/login");
   };
 
+  const handleLogout = () => {
+    signOut(auth).catch(console.error);
+    setSidebarOpen(false);
+  };
+
+  const sidebarItems = [
+    { label: "Trang chủ", icon: <HomeIcon className="w-5 h-5" />, to: "/" },
+    { label: "Thư viện", icon: <BookOpenIcon className="w-5 h-5" />, to: "/library" },
+    { label: "Thông báo", icon: <BellIcon className="w-5 h-5" />, to: "/notifications" },
+  ];
+
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Logo & dropdowns */}
-        <div className="flex items-center gap-6">
-          <Link
-            to="/"
-            className="text-xl font-bold text-indigo-600 hover:text-indigo-800 transition"
-          >
-            📖 Từ Vựng N5-N4
-          </Link>
+    <>
+      {/* HEADER */}
+      <header className="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)}>
+              <MenuIcon className="w-6 h-6 text-indigo-600" />
+            </button>
+            <Link to="/" className="flex items-center gap-2">
+              <div className="text-2xl font-extrabold text-indigo-600">J</div>
+            </Link>
 
-          <div className="flex gap-2">
-            {renderDropdown("N5", lessonGroups.N5)}
-            {renderDropdown("N4", lessonGroups.N4)}
-            <button className="text-gray-400 cursor-not-allowed text-sm" disabled>
-              N3
-            </button>
-            <button className="text-gray-400 cursor-not-allowed text-sm" disabled>
-              N2
-            </button>
-            <button className="text-gray-400 cursor-not-allowed text-sm" disabled>
-              N1
-            </button>
           </div>
-        </div>
 
-        {/* Auth controls */}
-        <div className="flex items-center gap-4">
-          {user ? (
-            <>
+          <div className="flex items-center gap-3">
+            {user && (
               <Link
-                to="/create"
-                className="flex items-center gap-1 text-sm text-green-600 hover:text-green-800 transition"
+                to="create-lesson"
+                className="hidden sm:flex items-center gap-1 text-sm text-green-600 hover:text-green-800"
               >
                 <PlusCircleIcon className="w-4 h-4" />
                 Tạo học phần
               </Link>
-
-              <span className="hidden sm:inline text-sm text-gray-600">
-                {user.displayName || user.email}
-              </span>
-
-              {renderAvatar()}
-
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1 text-sm text-red-600 hover:text-red-800 transition"
-              >
-                <LogOutIcon className="w-4 h-4" />
-                Đăng xuất
+            )}
+            {user ? (
+              <img
+                src={user.photoURL || ""}
+                alt="avatar"
+                className="w-8 h-8 rounded-full object-cover border"
+              />
+            ) : (
+              <button onClick={handleLogin} className="text-sm text-indigo-600">
+                Đăng nhập
               </button>
-            </>
-          ) : (
-            <button
-              onClick={handleLogin}
-              className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 transition"
-            >
-              <LogInIcon className="w-4 h-4" />
-              Đăng nhập
-            </button>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* SIDEBAR */}
+      {sidebarOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-40 z-40"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+          <div className="fixed inset-y-0 left-0 w-72 bg-white z-50 shadow-lg flex flex-col">
+            <div className="flex items-center justify-between px-4 py-4 border-b">
+              <h2 className="text-lg font-semibold text-indigo-600">📖 JP Game</h2>
+              <button onClick={() => setSidebarOpen(false)}>
+                <XIcon className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="flex flex-col px-4 py-2 gap-2">
+              {sidebarItems.map(({ label, icon, to }) => (
+                <Link
+                  key={label}
+                  to={to}
+                  onClick={() => setSidebarOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-indigo-50 text-gray-700"
+                >
+                  {icon}
+                  <span className="text-sm">{label}</span>
+                </Link>
+              ))}
+
+              {user && (
+                <>
+                  <Link
+                    to="/create-lesson"
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-green-50 text-green-700"
+                  >
+                    <PlusCircleIcon className="w-5 h-5" />
+                    <span className="text-sm">Tạo học phần</span>
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-red-50 text-red-600"
+                  >
+                    <LogOutIcon className="w-5 h-5" />
+                    <span className="text-sm">Đăng xuất</span>
+                  </button>
+                </>
+              )}
+
+              {!user && (
+                <button
+                  onClick={handleLogin}
+                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-indigo-100 text-indigo-600"
+                >
+                  <LogInIcon className="w-5 h-5" />
+                  <span className="text-sm">Đăng nhập</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 };
 
