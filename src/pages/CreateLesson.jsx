@@ -1,20 +1,21 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc } from "firebase/firestore";
-import { auth, db } from "../firebaseConfig"; // Firestore để lưu học phần
-import useAuth from "../hooks/useAuth"; // Hook lấy user đăng nhập
+import useAuth from "../hooks/useAuth";
 import { fetchJishoSuggestions } from "../utils/jishoApi";
 import { fetchUnsplashImages } from "../utils/unsplashApi";
-import { translateToEnglish } from "../utils/translateApi";
+import { translateToEnglish, translateToVietnamese } from "../utils/translateApi";
+import { saveLessonToFirebase } from "../utils/firebaseUtils";
 
 const CreateLesson = () => {
   const navigate = useNavigate();
-  const user = useAuth(); // Lấy thông tin user đăng nhập
+  const user = useAuth();
   const [lessonName, setLessonName] = useState("");
-  const [isPublic, setIsPublic] = useState(true); // Mặc định là Public
+  const [isPublic, setIsPublic] = useState(true);
   const [words, setWords] = useState([
     { vocab: "", meaning: "", image: "", imageOptions: [], suggestions: [] },
   ]);
+
+  const debounceTimeouts = useRef({});
 
   const handleChangeWord = async (index, field, value) => {
     const updated = [...words];
@@ -25,7 +26,27 @@ const CreateLesson = () => {
       const suggestions = await fetchJishoSuggestions(value);
       updated[index].suggestions = suggestions;
       setWords([...updated]);
+
+      clearTimeout(debounceTimeouts.current[index]);
+      debounceTimeouts.current[index] = setTimeout(async () => {
+        if (!updated[index].meaning.trim()) {
+          const vietnameseMeaning = await translateToVietnamese(value);
+          const finalWords = [...words];
+          finalWords[index].meaning = vietnameseMeaning;
+          setWords(finalWords);
+        }
+      }, 800);
     }
+  };
+
+  const handleSuggestMeaning = async (index) => {
+    const word = words[index];
+    if (!word.vocab.trim()) return;
+
+    const meaning = await translateToVietnamese(word.vocab);
+    const updated = [...words];
+    updated[index].meaning = meaning;
+    setWords(updated);
   };
 
   const handleFetchImages = async (index) => {
@@ -68,17 +89,26 @@ const CreateLesson = () => {
     }
 
     try {
-      await addDoc(collection(db, "lessons"), {
+      const lessonData = {
         userId: user.uid,
         lessonName,
         isPublic,
-        words,
         createdAt: new Date(),
-      });
+      };
 
+      const cleanedWords = words.map(word => ({
+        vocab: word.vocab,
+        meaning: word.meaning,
+        image: word.image,
+      }));
+
+      await saveLessonToFirebase(lessonData, cleanedWords);
+
+      alert("✅ Học phần đã được lưu thành công!");
       navigate("/");
     } catch (error) {
-      console.error("Lỗi khi lưu học phần:", error);
+      console.error("❌ Lỗi khi lưu học phần:", error);
+      alert("❌ Đã xảy ra lỗi khi lưu học phần.");
     }
   };
 
@@ -103,25 +133,42 @@ const CreateLesson = () => {
           />
         </div>
 
-        {/* Checkbox chọn Public hoặc Private */}
         <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={isPublic} onChange={() => setIsPublic(!isPublic)} className="w-5 h-5" />
+          <input
+            type="checkbox"
+            checked={isPublic}
+            onChange={() => setIsPublic(!isPublic)}
+            className="w-5 h-5"
+          />
           <span className="text-sm text-gray-700">Công khai học phần (Public)</span>
         </label>
 
         {words.map((word, index) => (
-          <div key={index} className="space-y-4 p-6 rounded-xl bg-white shadow border border-gray-100">
+          <div
+            key={index}
+            className="space-y-4 p-6 rounded-xl bg-white shadow border border-gray-100"
+          >
             <div className="text-sm font-semibold text-indigo-600">
               Từ vựng {index + 1}
             </div>
 
-            <input
-              type="text"
-              placeholder="Từ vựng"
-              value={word.vocab}
-              onChange={(e) => handleChangeWord(index, "vocab", e.target.value)}
-              className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            />
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                placeholder="Từ vựng"
+                value={word.vocab}
+                onChange={(e) => handleChangeWord(index, "vocab", e.target.value)}
+                className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+              <button
+                type="button"
+                title="Gợi ý ý nghĩa"
+                onClick={() => handleSuggestMeaning(index)}
+                className="px-3 py-1 rounded-md border border-gray-300 text-sm hover:bg-gray-100"
+              >
+                💡
+              </button>
+            </div>
 
             {word.suggestions.length > 0 && (
               <ul className="flex flex-wrap gap-2 text-sm text-gray-600">
@@ -142,9 +189,7 @@ const CreateLesson = () => {
                 type="text"
                 placeholder="Ý nghĩa tiếng Việt"
                 value={word.meaning}
-                onChange={(e) =>
-                  handleChangeWord(index, "meaning", e.target.value)
-                }
+                onChange={(e) => handleChangeWord(index, "meaning", e.target.value)}
                 className="w-full px-4 py-2 rounded-md border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
               />
               <button
@@ -166,22 +211,12 @@ const CreateLesson = () => {
                     alt="option"
                     onClick={() => handleSelectImage(index, imgUrl)}
                     className={`w-full h-24 object-cover rounded-md border-2 cursor-pointer transition hover:scale-105 ${
-                      word.image === imgUrl
-                        ? "border-indigo-500"
-                        : "border-gray-200"
+                      word.image === imgUrl ? "border-indigo-500" : "border-gray-200"
                     }`}
                   />
                 ))}
               </div>
             )}
-
-            <input
-              type="text"
-              placeholder="URL hình ảnh (tuỳ chọn)"
-              value={word.image}
-              onChange={(e) => handleChangeWord(index, "image", e.target.value)}
-              className="hidden"
-            />
 
             {word.image && (
               <div className="relative inline-block mt-2">
@@ -189,7 +224,6 @@ const CreateLesson = () => {
                   src={word.image}
                   alt="preview"
                   className="w-20 h-20 object-cover rounded-md border border-indigo-400"
-                  onError={(e) => (e.target.style.display = "none")}
                 />
                 <button
                   type="button"
