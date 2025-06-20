@@ -6,7 +6,7 @@ export default function LessonPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-100 to-blue-200 p-4">
-      <h1 className="text-3xl font-bold text-indigo-800 mb-6">🎮 Chọn trò chơi - Bài {lessonId}</h1>
+      <h1 className="text-3xl font-bold text-indigo-800 mb-6">🎮 Chọn trò chơi</h1>
 
       <div className="flex gap-6">
         <Link
