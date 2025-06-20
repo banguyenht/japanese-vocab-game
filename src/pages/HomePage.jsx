@@ -1,44 +1,47 @@
 import { Link } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import useLessons from "../hooks/useLessons";
+import LessonList from "../components/LessonList";
 
 const HomePage = () => {
-  const user = useAuth(); // Lấy thông tin người dùng
+  const user = useAuth();
+  const { publicLessons, privateLessons, loading } = useLessons();
 
-  // Tạm thời tạo danh sách học phần mẫu
-  const userLessons = [
-    { id: 1, title: "Từ vựng gia đình", wordCount: 20 },
-    { id: 2, title: "Động từ N5", wordCount: 30 },
-    { id: 3, title: "Từ trái nghĩa", wordCount: 15 },
-    { id: 4, title: "Mẫu câu hay gặp", wordCount: 10 },
-  ];
+  const filteredPublicLessons = user
+    ? publicLessons.filter((lesson) => lesson.userId !== user.uid)
+    : publicLessons;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-          📚 Các học phần của bạn
-        </h1>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {userLessons.map((lesson) => (
-            <Link
-              key={lesson.id}
-              to={`/lesson/${lesson.id}`}
-              className="bg-white rounded-2xl shadow hover:shadow-lg transition-all duration-300 p-6 border border-gray-100 hover:border-indigo-300"
-            >
-              <h3 className="text-xl font-semibold text-indigo-700 mb-2">
-                {lesson.title}
-              </h3>
-              <p className="text-gray-500 text-sm">{lesson.wordCount} từ vựng</p>
-            </Link>
-          ))}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-indigo-700 mb-2">
+            🚀 Chào mừng đến với Từ vựng tiếng Nhật!
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Luyện tập & khám phá kho từ vựng cực kỳ phong phú!
+          </p>
         </div>
 
-        {user && ( // Kiểm tra nếu user đã đăng nhập thì hiển thị nút tạo học phần mới
-          <div className="mt-10 flex justify-center">
+        <LessonList
+          title="📘 Học phần của bạn"
+          lessons={privateLessons}
+          currentUserId={user?.uid}
+          loading={loading}
+        />
+
+        <LessonList
+          title="🌍 Các học phần công khai"
+          lessons={filteredPublicLessons}
+          currentUserId={user?.uid}
+          loading={loading}
+        />
+
+        {user && (
+          <div className="mt-14 flex justify-center">
             <Link
               to="/tao-tu-vung-tieng-nhat"
-              className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-indigo-700 transition"
+              className="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3 rounded-full text-sm font-semibold hover:opacity-90 shadow-md"
             >
               ➕ Tạo học phần mới
             </Link>
