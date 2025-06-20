@@ -1,24 +1,68 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  collection,
+  addDoc,
+} from "firebase/firestore";
+import { db } from "../firebaseConfig";
 import useAuth from "../hooks/useAuth";
-import { saveLessonToFirebase } from "../utils/firebaseUtils";
 import WordInputCard from "../components/WordInputCard";
 
-const CreateLesson = () => {
+const EditLessonPage = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuth();
+
   const [lessonName, setLessonName] = useState("");
   const [isPublic, setIsPublic] = useState(true);
-  const [words, setWords] = useState([
-    { vocab: "", meaning: "", image: "", imageOptions: [], suggestions: [] },
-  ]);
+  const [words, setWords] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleAddWord = () => {
-    setWords([
-      ...words,
-      { vocab: "", meaning: "", image: "", imageOptions: [], suggestions: [] },
-    ]);
-  };
+  useEffect(() => {
+    const fetchLesson = async () => {
+      setLoading(true);
+      try {
+        const lessonRef = doc(db, "lessons", id);
+        const lessonSnap = await getDoc(lessonRef);
+
+        if (!lessonSnap.exists()) {
+          alert("❌ Học phần không tồn tại");
+          return navigate("/");
+        }
+
+        const lessonData = lessonSnap.data();
+
+        if (lessonData.userId !== user?.uid) {
+          alert("❌ Bạn không có quyền chỉnh sửa học phần này");
+          return navigate("/");
+        }
+
+        setLessonName(lessonData.lessonName);
+        setIsPublic(lessonData.isPublic);
+
+        const wordsRef = collection(lessonRef, "words");
+        const wordSnap = await getDocs(wordsRef);
+        const wordList = wordSnap.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          imageOptions: [],
+          suggestions: [],
+        }));
+        setWords(wordList);
+      } catch (err) {
+        console.error("❌ Lỗi khi tải học phần:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id && user) fetchLesson();
+  }, [id, user, navigate]);
 
   const handleUpdateWord = (index, updatedWordOrCallback) => {
     setWords((prevWords) => {
@@ -43,47 +87,60 @@ const CreateLesson = () => {
     }
   };
 
-  const handleDeleteWord = (indexToRemove) => {
-    setWords((prevWords) => prevWords.filter((_, idx) => idx !== indexToRemove));
+  const handleAddWord = () => {
+    setWords((prev) => [
+      ...prev,
+      { vocab: "", meaning: "", image: "", imageOptions: [], suggestions: [] },
+    ]);
   };
 
+  const handleDeleteWord = (indexToRemove) => {
+    setWords((prevWords) =>
+      prevWords.filter((_, i) => i !== indexToRemove)
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!user) {
-      alert("Bạn cần đăng nhập để tạo học phần!");
-      return;
-    }
-
     try {
-      const lessonData = {
-        userId: user.uid,
+      const lessonRef = doc(db, "lessons", id);
+      await updateDoc(lessonRef, {
         lessonName,
         isPublic,
-        createdAt: new Date(),
-      };
+        wordCount: words.length,
+      });
 
-      const cleanedWords = words.map(word => ({
-        vocab: word.vocab,
-        meaning: word.meaning,
-        image: word.image,
-      }));
+      const wordsRef = collection(lessonRef, "words");
+      const existingWords = await getDocs(wordsRef);
+      await Promise.all(existingWords.docs.map((doc) => deleteDoc(doc.ref)));
 
-      await saveLessonToFirebase(lessonData, cleanedWords);
+      await Promise.all(
+        words.map((word) =>
+          addDoc(wordsRef, {
+            vocab: word.vocab,
+            meaning: word.meaning,
+            image: word.image,
+          })
+        )
+      );
 
-      alert("✅ Học phần đã được lưu thành công!");
+      alert("✅ Cập nhật học phần thành công!");
       navigate("/");
-    } catch (error) {
-      console.error("❌ Lỗi khi lưu học phần:", error);
-      alert("❌ Đã xảy ra lỗi khi lưu học phần.");
+    } catch (err) {
+      console.error("❌ Lỗi khi cập nhật học phần:", err);
+      alert("❌ Lỗi khi cập nhật học phần");
     }
   };
+
+  if (loading) {
+    return <div className="text-center py-20">Đang tải học phần...</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold text-center text-indigo-700 mb-10">
-        📚 Tạo học phần mới
+        ✏️ Chỉnh sửa học phần
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -108,18 +165,20 @@ const CreateLesson = () => {
             onChange={() => setIsPublic(!isPublic)}
             className="w-5 h-5"
           />
-          <span className="text-sm text-gray-700">Công khai học phần (Public)</span>
+          <span className="text-sm text-gray-700">
+            Công khai học phần (Public)
+          </span>
         </label>
 
         {words.map((word, index) => (
           <WordInputCard
-            key={index}
+            key={word.id || index}
             index={index}
             word={word}
-            mode="create"
+            mode="edit"
             onChange={handleUpdateWord}
-            onSuggestMeaningClick={() => handleSuggestMeaningClick(index)}
             onDeleteWord={() => handleDeleteWord(index)}
+            onSuggestMeaningClick={() => handleSuggestMeaningClick(index)}
           />
         ))}
 
@@ -136,7 +195,7 @@ const CreateLesson = () => {
             type="submit"
             className="px-5 py-2 bg-indigo-600 text-white font-medium rounded-md shadow hover:bg-indigo-700 text-sm"
           >
-            ✅ Tạo học phần
+            ✅ Cập nhật học phần
           </button>
         </div>
       </form>
@@ -144,4 +203,4 @@ const CreateLesson = () => {
   );
 };
 
-export default CreateLesson;
+export default EditLessonPage;

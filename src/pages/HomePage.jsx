@@ -16,7 +16,7 @@ const HomePage = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-indigo-700 mb-2">
-            🚀 Chào mừng đến với Từ vựng tiếng Nhật!
+            Chào mừng đến với Từ vựng tiếng Nhật!
           </h1>
           <p className="text-gray-600 text-lg">
             Luyện tập & khám phá kho từ vựng cực kỳ phong phú!
@@ -31,7 +31,7 @@ const HomePage = () => {
         />
 
         <LessonList
-          title="🌍 Các học phần công khai"
+          title="🌍  Các học phần công khai"
           lessons={filteredPublicLessons}
           currentUserId={user?.uid}
           loading={loading}

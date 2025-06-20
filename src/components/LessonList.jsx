@@ -3,7 +3,6 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 import SkeletonCard from "./SkeletonLessonCard";
 
 const LessonList = ({ title, lessons = [], currentUserId, loading = false }) => {
-  // Show skeleton if loading
   if (loading) {
     return (
       <>
@@ -47,12 +46,13 @@ const LessonList = ({ title, lessons = [], currentUserId, loading = false }) => 
 
               {isOwner && (
                 <div className="absolute top-3 right-3 flex gap-3">
-                  <button
+                  <Link
+                    to={`/sua-tu-vung-tieng-nhat/${lesson.id}`}
                     title="Chỉnh sửa"
                     className="text-indigo-600 hover:text-indigo-800"
                   >
                     <FaEdit />
-                  </button>
+                  </Link>
                   <button
                     title="Xoá học phần"
                     className="text-red-500 hover:text-red-700"

@@ -2,8 +2,9 @@ import { useRef } from "react";
 import { fetchJishoSuggestions } from "../utils/jishoApi";
 import { fetchUnsplashImages } from "../utils/unsplashApi";
 import { translateToEnglish } from "../utils/translateApi";
+import { FaTrash } from "react-icons/fa";
 
-const WordInputCard = ({ index, word, onChange, onSuggestMeaningClick, mode = "create" }) => {
+const WordInputCard = ({ index, word, onChange, onSuggestMeaningClick, onDeleteWord, mode = "create" }) => {
   const debounceRef = useRef();
 
   const handleChange = (field, value) => {
@@ -52,8 +53,20 @@ const WordInputCard = ({ index, word, onChange, onSuggestMeaningClick, mode = "c
 
   return (
     <div className="space-y-4 p-6 rounded-xl bg-white shadow border border-gray-100">
-      <div className="text-sm font-semibold text-indigo-600">
-        Từ vựng {index + 1}
+      <div className="flex justify-between items-center">
+        <div className="text-sm font-semibold text-indigo-600">
+          Từ vựng {index + 1}
+        </div>
+        {(mode === "create" || mode === "edit") && (
+          <button
+            type="button"
+            title="Xoá từ vựng"
+            onClick={() => onDeleteWord?.(index)}
+            className="text-gray-400 hover:text-gray-600 p-1 rounded-full transition"
+          >
+            <FaTrash size={14} />
+          </button>
+        )}
       </div>
 
       <div className="flex gap-2 items-center">
