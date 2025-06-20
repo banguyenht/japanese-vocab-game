@@ -1,38 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { db } from "../firebaseConfig";
-import { collection, getDocs, doc } from "firebase/firestore";
+import useFetchLesson from "../hooks/useFetchLesson";
+import { useJishoReading } from "../hooks/useJishoReading";
 
 export default function LessonPage() {
   const { lessonId } = useParams();
-  const [words, setWords] = useState([]);
+  const { lesson, words, loading, error } = useFetchLesson(lessonId);
 
-  useEffect(() => {
-    const fetchWords = async () => {
-      try {
-        const lessonRef = doc(db, "lessons", lessonId);
-        const wordsRef = collection(lessonRef, "words");
-        const wordSnap = await getDocs(wordsRef);
-
-        const wordList = wordSnap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setWords(wordList);
-      } catch (error) {
-        console.error("Lỗi khi lấy từ vựng:", error);
-      }
-    };
-
-    if (lessonId) fetchWords();
-  }, [lessonId]);
-
+  // Gọi hook lấy cách đọc cho toàn bộ từ
+  const readings = useJishoReading(words);
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 to-blue-200 p-6 flex flex-col items-center">
       <h1 className="text-3xl font-bold text-indigo-800 mb-6">📖 Từ vựng trong học phần</h1>
 
-      {/* Bảng từ vựng */}
       <div className="w-full max-w-4xl bg-white rounded-lg shadow p-4 mb-10 overflow-auto">
         <table className="w-full table-auto text-left border-collapse">
           <thead>
@@ -43,17 +23,29 @@ export default function LessonPage() {
             </tr>
           </thead>
           <tbody>
-            {words.length === 0 ? (
+            {loading ? (
               <tr>
                 <td colSpan="3" className="text-center py-6 text-gray-500">
-                  Không có từ vựng nào trong học phần này.
+                  Đang tải từ vựng...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="3" className="text-center py-6 text-red-500">
+                  ❌ Lỗi: {error.message}
+                </td>
+              </tr>
+            ) : words.length === 0 ? (
+              <tr>
+                <td colSpan="3" className="text-center py-6 text-gray-400">
+                  Không có từ vựng nào.
                 </td>
               </tr>
             ) : (
               words.map((word, index) => (
                 <tr key={word.id || index} className="hover:bg-gray-50">
                   <td className="px-4 py-2 border-b">{word.vocab}</td>
-                  <td className="px-4 py-2 border-b text-gray-500 italic">-</td>
+                  <td className="px-4 py-2 border-b text-gray-500 italic">{readings[word.vocab] || "-"}</td>
                   <td className="px-4 py-2 border-b">{word.meaning}</td>
                 </tr>
               ))
@@ -62,8 +54,6 @@ export default function LessonPage() {
         </table>
       </div>
 
-      {/* Menu trò chơi */}
-      <h2 className="text-2xl font-semibold text-indigo-700 mb-4">🎮 Chọn trò chơi</h2>
       <div className="flex gap-6">
         <Link
           to={`/quiz/${lessonId}`}

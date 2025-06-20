@@ -2,6 +2,7 @@
 const JISHO_API = "https://jisho.org/api/v1/search/words";
 
 export const fetchJishoSuggestions = async (keyword) => {
+  return []
   try {
     const res = await fetch(`${JISHO_API}?keyword=${encodeURIComponent(keyword)}`);
     const data = await res.json();

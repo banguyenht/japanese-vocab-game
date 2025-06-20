@@ -1,50 +1,15 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  doc, getDoc, getDocs, collection
-} from "firebase/firestore";
-import { db } from "../firebaseConfig";
 import useAuth from "../hooks/useAuth";
 import LessonForm from "../components/LessonForm";
 import { updateLessonInFirebase } from "../utils/firebaseUtils";
+import useFetchLesson from "../hooks/useFetchLesson";
 
 const EditLessonPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuth();
 
-  const [initialData, setInitialData] = useState(null);
-
-  useEffect(() => {
-    const fetchLesson = async () => {
-      const lessonRef = doc(db, "lessons", id);
-      const lessonSnap = await getDoc(lessonRef);
-      if (!lessonSnap.exists()) return alert("❌ Học phần không tồn tại");
-
-      const lessonData = lessonSnap.data();
-      if (lessonData.userId !== user?.uid) {
-        alert("❌ Bạn không có quyền chỉnh sửa học phần này");
-        return navigate("/");
-      }
-
-      const wordsRef = collection(lessonRef, "words");
-      const wordSnap = await getDocs(wordsRef);
-      const wordList = wordSnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        imageOptions: [],
-        suggestions: [],
-      }));
-
-      setInitialData({
-        lessonName: lessonData.lessonName,
-        isPublic: lessonData.isPublic,
-        words: wordList,
-      });
-    };
-
-    if (id && user) fetchLesson();
-  }, [id, user, navigate]);
+  const { lesson, words, loading, error } = useFetchLesson(id);
 
   const handleSubmit = async ({ lessonName, isPublic, words }) => {
     try {
@@ -53,12 +18,27 @@ const EditLessonPage = () => {
       navigate("/");
     } catch (err) {
       alert("❌ Lỗi khi cập nhật học phần");
+      console.error(err);
     }
   };
 
-  if (!initialData) {
+  if (loading || !user) {
     return <div className="text-center py-20">Đang tải học phần...</div>;
   }
+
+  if (error) {
+    return <div className="text-center py-20 text-red-500">❌ {error.message}</div>;
+  }
+
+  if (lesson.userId !== user.uid) {
+    return <div className="text-center py-20 text-red-600">❌ Bạn không có quyền chỉnh sửa học phần này</div>;
+  }
+
+  const preparedWords = words.map((w) => ({
+    ...w,
+    imageOptions: [],
+    suggestions: [],
+  }));
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 bg-gray-50 min-h-screen">
@@ -66,9 +46,9 @@ const EditLessonPage = () => {
       <LessonForm
         onSubmit={handleSubmit}
         mode="edit"
-        initialLessonName={initialData.lessonName}
-        initialIsPublic={initialData.isPublic}
-        initialWords={initialData.words}
+        initialLessonName={lesson.lessonName}
+        initialIsPublic={lesson.isPublic}
+        initialWords={preparedWords}
       />
     </div>
   );

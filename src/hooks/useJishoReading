@@ -1,0 +1,39 @@
+// hooks/useJishoReading.js
+import { useState, useEffect } from "react";
+
+export function useJishoReading(words) {
+  const [readings, setReadings] = useState({}); // { vocab: reading }
+
+  useEffect(() => {
+    if (!words || words.length === 0) {
+      setReadings({});
+      return;
+    }
+
+    const fetchAllReadings = async () => {
+      const results = {};
+
+      await Promise.all(
+        words.map(async (word) => {
+          if (!word.vocab) return;
+
+          try {
+            const res = await fetch(`/api/jisho?vocab=${encodeURIComponent(word.vocab)}`);
+            console.log("api/jisho res:  " + res)
+            const data = await res.json();
+            results[word.vocab] = data.reading || "-";
+          } catch (error) {
+            console.error(`❌ Lỗi khi gọi proxy Jisho API cho từ "${word.vocab}":`, error);
+            results[word.vocab] = "-";
+          }
+        })
+      );
+
+      setReadings(results);
+    };
+
+    fetchAllReadings();
+  }, [words]);
+
+  return readings;
+}
