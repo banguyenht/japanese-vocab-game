@@ -66,15 +66,10 @@ const Header = () => {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder="Tìm kiếm từ vựng, bài học..."
-        className="w-full px-4 py-2 pr-10 border rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="w-full px-4 py-2 pr-10 border rounded-full text-sm text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]"
       />
-      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9CA3AF]">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -93,12 +88,12 @@ const Header = () => {
         <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
           <div className="flex items-center gap-4 flex-1">
             <button onClick={() => setSidebarOpen(true)} className="sm:hidden">
-              <MenuIcon className="w-6 h-6 text-indigo-600" />
+              <MenuIcon className="w-6 h-6 text-[#4F46E5]" />
             </button>
 
             <Link to="/" className="flex items-center gap-2">
-              <div className="text-2xl font-bold text-indigo-600">J</div>
-              <span className="hidden sm:inline text-indigo-700 font-semibold text-sm">
+              <div className="text-2xl font-bold text-[#4F46E5]">J</div>
+              <span className="hidden sm:inline text-[#4338CA] font-semibold text-sm">
                 JP Game
               </span>
             </Link>
@@ -108,7 +103,7 @@ const Header = () => {
                 <Link
                   key={label}
                   to={to}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition"
+                  className="flex items-center gap-2 text-sm font-medium text-[#374151] hover:text-[#4F46E5] transition"
                 >
                   {icon}
                   <span>{label}</span>
@@ -125,7 +120,7 @@ const Header = () => {
             {user && (
               <Link
                 to="/tao-tu-vung-tieng-nhat"
-                className="hidden sm:flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-800 transition"
+                className="hidden sm:flex items-center gap-1 text-sm font-medium text-[#16A34A] hover:text-[#15803D] transition"
               >
                 <PlusCircleIcon className="w-5 h-5" />
                 Tạo học phần
@@ -143,7 +138,7 @@ const Header = () => {
                 {avatarMenuOpen && (
                   <div className="absolute right-0 mt-2 w-52 bg-white border rounded shadow-md z-50">
                     <div
-                      className="px-4 py-2 text-sm text-gray-700 border-b truncate"
+                      className="px-4 py-2 text-sm text-[#374151] border-b truncate"
                       title={user.email}
                     >
                       {user.email}
@@ -153,14 +148,14 @@ const Header = () => {
                         navigate("/change-password");
                         setAvatarMenuOpen(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-[#F3F4F6] flex items-center gap-2 text-[#374151]"
                     >
                       <KeyIcon className="w-4 h-4" />
                       Đổi mật khẩu
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left text-sm text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-2"
                     >
                       <LogOutIcon className="w-4 h-4" />
                       Đăng xuất
@@ -171,7 +166,7 @@ const Header = () => {
             ) : (
               <button
                 onClick={handleLogin}
-                className="text-sm font-medium text-indigo-600 hover:underline"
+                className="text-sm font-medium text-[#4F46E5] hover:underline"
               >
                 Đăng nhập
               </button>
@@ -189,9 +184,9 @@ const Header = () => {
           ></div>
           <div className="fixed inset-y-0 left-0 w-72 bg-white z-50 shadow-lg flex flex-col">
             <div className="flex items-center justify-between px-4 py-4 border-b">
-              <h2 className="text-lg font-semibold text-indigo-600">📖 JP Game</h2>
+              <h2 className="text-lg font-semibold text-[#4F46E5]">📖 JP Game</h2>
               <button onClick={() => setSidebarOpen(false)}>
-                <XIcon className="w-6 h-6 text-gray-500" />
+                <XIcon className="w-6 h-6 text-[#6B7280]" />
               </button>
             </div>
 
@@ -205,7 +200,7 @@ const Header = () => {
                   key={label}
                   to={to}
                   onClick={() => setSidebarOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-indigo-50 text-gray-700 font-medium"
+                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#EEF2FF] text-[#374151] font-medium"
                 >
                   {icon}
                   <span className="text-sm">{label}</span>
@@ -219,15 +214,24 @@ const Header = () => {
                   <Link
                     to="/tao-tu-vung-tieng-nhat"
                     onClick={() => setSidebarOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-green-50 text-green-700"
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#ECFDF5] text-[#15803D]"
                   >
                     <PlusCircleIcon className="w-5 h-5" />
                     <span className="text-sm">Tạo học phần</span>
                   </Link>
 
+                  <Link
+                    to="/change-password"
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#F3F4F6] text-[#374151]"
+                  >
+                    <KeyIcon className="w-5 h-5" />
+                    <span className="text-sm">Đổi mật khẩu</span>
+                  </Link>
+
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-red-50 text-red-600"
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#FEF2F2] text-[#DC2626]"
                   >
                     <LogOutIcon className="w-5 h-5" />
                     <span className="text-sm">Đăng xuất</span>
@@ -238,7 +242,7 @@ const Header = () => {
               {!user && (
                 <button
                   onClick={handleLogin}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-indigo-100 text-indigo-600"
+                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#E0E7FF] text-[#4F46E5]"
                 >
                   <LogInIcon className="w-5 h-5" />
                   <span className="text-sm">Đăng nhập</span>
